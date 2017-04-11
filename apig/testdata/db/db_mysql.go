@@ -3,36 +3,23 @@ package db
 import (
 	"log"
 	"os"
-	{{ if (eq .Database "sqlite") }}	"path/filepath"
-	{{ end -}}
 	"strings"
+
+	"github.com/wantedly/api-server/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/{{ .Database }}"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/serenize/snaker"
 )
 
 func Connect() *gorm.DB {
-{{ if (eq .Database "sqlite") -}}
-	dir := filepath.Dir("db/database.db")
-	db, err := gorm.Open("sqlite3", dir+"/database.db")
-{{ else if (eq .Database "postgres") -}}
-	dbURL := os.Getenv("DATABASE_URL")
-	if dbURL == "" {
-		return nil
-	}
-
-	db, err := gorm.Open("postgres", dbURL)
-{{ end -}}
-{{ else if (eq .Database "mysql") -}}
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
 		return nil
 	}
 
 	db, err := gorm.Open("mysql", dbURL)
-{{ end -}}
 	if err != nil {
 		log.Fatalf("Got error when connect database, the error is '%v'", err)
 	}
@@ -41,6 +28,12 @@ func Connect() *gorm.DB {
 
 	if gin.IsDebugging() {
 		db.LogMode(true)
+	}
+
+	if os.Getenv("AUTOMIGRATE") == "1" {
+		db.AutoMigrate(
+			&models.User{},
+		)
 	}
 
 	return db
