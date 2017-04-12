@@ -89,11 +89,50 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 			fieldMaps = append(fieldMaps, fieldMap)
 		}
 
-		if _, ok := c.GetQuery("pretty"); ok {
-			c.IndentedJSON(200, fieldMaps)
-		} else {
-			c.JSON(200, fieldMaps)
-		}
+		// collect meta information
+            metaMap := make(map[string]interface{})
+
+            // get total available records without the pagination
+            var count int
+            db := dbpkg.DBInstance(c)
+            parameter, err := dbpkg.NewParameter(c, models.{{ .Model.Name }}{})
+            if err != nil {
+                c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
+                return
+            }
+
+            db = parameter.SetPreloads(db)
+            db = parameter.SortRecords(db)
+            db = parameter.FilterFields(db)
+
+            if err := db.Model(&{{ pluralize (toLowerCamelCase .Model.Name) }}).Count(&count).Error; err != nil {
+                c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
+                return
+            }
+            metaMap["total"] = count
+            metaMap["count"] = len(fieldMaps)
+
+            // current page from gin context
+            currentPage,err := strconv.Atoi(c.DefaultQuery("page","1"))
+            if err != nil {
+                c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
+                return
+            }
+            metaMap["page"] = currentPage
+            // is this the last page or are there payments remaining? New payments must be added to the last page not the first
+            metaMap["has_more"] = (count > currentPage * len(fieldMaps))
+
+            // wrap it up in the result map
+            resultMap := make(map[string]interface{})
+            resultMap["items"] = fieldMaps
+            resultMap["_meta"] = metaMap
+            fmt.Printf("%+v\n", metaMap)
+            if _, ok := c.GetQuery("pretty"); ok {
+                c.IndentedJSON(200, resultMap)
+            } else {
+                c.JSON(200, resultMap)
+            }
+
 	}
 }
 
