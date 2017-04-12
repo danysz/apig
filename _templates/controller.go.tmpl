@@ -109,11 +109,13 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
                 c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
                 return
             }
+
             metaMap["total"] = count
             metaMap["count"] = len(fieldMaps)
 
             // current page from gin context
             currentPage,err := strconv.Atoi(c.DefaultQuery("page","1"))
+
             if err != nil {
                 c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
                 return
@@ -126,7 +128,7 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
             resultMap := make(map[string]interface{})
             resultMap["items"] = fieldMaps
             resultMap["_meta"] = metaMap
-            fmt.Printf("%+v\n", metaMap)
+
             if _, ok := c.GetQuery("pretty"); ok {
                 c.IndentedJSON(200, resultMap)
             } else {
