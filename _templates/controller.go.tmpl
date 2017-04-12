@@ -10,6 +10,7 @@ import (
 	"{{ .ImportDir }}/version"
 
 	"github.com/gin-gonic/gin"
+	"strconv"
 )
 
 func Get{{ pluralize .Model.Name }}(c *gin.Context) {
