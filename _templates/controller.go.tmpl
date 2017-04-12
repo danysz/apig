@@ -15,20 +15,20 @@ import (
 func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	db := dbpkg.DBInstance(c)
 	parameter, err := dbpkg.NewParameter(c, models.{{ .Model.Name }}{})
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	db, err = parameter.Paginate(db)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -40,7 +40,7 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 	queryFields := helper.QueryFields(models.{{ .Model.Name }}{}, fields)
 
 	if err := db.Select(queryFields).Find(&{{ pluralize (toLowerCamelCase .Model.Name) }}).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -51,7 +51,7 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 	}
 
 	if err := parameter.SetHeaderLink(c, index); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -67,12 +67,12 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 		for _, {{ toLowerCamelCase .Model.Name }} := range {{ pluralize (toLowerCamelCase .Model.Name) }} {
 			fieldMap, err := helper.FieldToMap({{ toLowerCamelCase .Model.Name }}, fields)
 			if err != nil {
-				c.JSON(400, gin.H{"error": err.Error()})
+				c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 				return
 			}
 
 			if err := enc.Encode(fieldMap); err != nil {
-				c.JSON(400, gin.H{"error": err.Error()})
+				c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 				return
 			}
 		}
@@ -82,7 +82,7 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 		for _, {{ toLowerCamelCase .Model.Name }} := range {{ pluralize (toLowerCamelCase .Model.Name) }} {
 			fieldMap, err := helper.FieldToMap({{ toLowerCamelCase .Model.Name }}, fields)
 			if err != nil {
-				c.JSON(400, gin.H{"error": err.Error()})
+				c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 				return
 			}
 
@@ -100,14 +100,14 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 func Get{{ .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	db := dbpkg.DBInstance(c)
 	parameter, err := dbpkg.NewParameter(c, models.{{ .Model.Name }}{})
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -125,7 +125,7 @@ func Get{{ .Model.Name }}(c *gin.Context) {
 
 	fieldMap, err := helper.FieldToMap({{ toLowerCamelCase .Model.Name }}, fields)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -144,7 +144,7 @@ func Get{{ .Model.Name }}(c *gin.Context) {
 func Create{{ .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -152,12 +152,12 @@ func Create{{ .Model.Name }}(c *gin.Context) {
 	{{ toLowerCamelCase .Model.Name }} := models.{{ .Model.Name }}{}
 
 	if err := c.Bind(&{{ toLowerCamelCase .Model.Name }}); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	if err := db.Create(&{{ toLowerCamelCase .Model.Name }}).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -172,7 +172,7 @@ func Create{{ .Model.Name }}(c *gin.Context) {
 func Update{{ .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -187,12 +187,12 @@ func Update{{ .Model.Name }}(c *gin.Context) {
 	}
 
 	if err := c.Bind(&{{ toLowerCamelCase .Model.Name }}); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	if err := db.Save(&{{ toLowerCamelCase .Model.Name }}).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -207,7 +207,7 @@ func Update{{ .Model.Name }}(c *gin.Context) {
 func Delete{{ .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -216,13 +216,13 @@ func Delete{{ .Model.Name }}(c *gin.Context) {
 	{{ toLowerCamelCase .Model.Name }} := models.{{ .Model.Name }}{}
 
 	if db.First(&{{ toLowerCamelCase .Model.Name }}, id).Error != nil {
-		content := gin.H{"error": "{{ toSnakeCase .Model.Name }} with id#" + id + " not found"}
+		content := gin.H{"devMsg": "{{ toSnakeCase .Model.Name }} with id#" + id + " not found", "usrMsg": "Record not found", "respCode": 400}
 		c.JSON(404, content)
 		return
 	}
 
 	if err := db.Delete(&{{ toLowerCamelCase .Model.Name }}).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
