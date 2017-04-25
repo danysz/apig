@@ -11,12 +11,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"strconv"
+	log "github.com/Sirupsen/logrus"
 )
 
 func Get{{ pluralize .Model.Name }}(c *gin.Context) {
     // Check that user has proper permissions to access this resource
     if (c.MustGet("secured").(bool) == true) {
-        if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_read"]; !ok {
+        perm := "{{ .Model.Name }}_read"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
             c.JSON(http.StatusForbidden, gin.H{
                 "respCode": http.StatusForbidden,
                 "devMsg":   "User does not have permission to access this endpoint",
@@ -154,7 +160,12 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 func Get{{ .Model.Name }}(c *gin.Context) {
     // Check that user has proper permissions to access this resource
     if (c.MustGet("secured").(bool) == true) {
-        if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_read"]; !ok {
+        perm := "{{ .Model.Name }}_read"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
             c.JSON(http.StatusForbidden, gin.H{
                 "respCode": http.StatusForbidden,
                 "devMsg":   "User does not have permission to access this endpoint",
@@ -163,6 +174,7 @@ func Get{{ .Model.Name }}(c *gin.Context) {
             return
         }
     }
+
 	ver, err := version.New(c)
 	if err != nil {
 		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
@@ -209,7 +221,12 @@ func Get{{ .Model.Name }}(c *gin.Context) {
 func Create{{ .Model.Name }}(c *gin.Context) {
     // Check that user has proper permissions to access this resource
     if (c.MustGet("secured").(bool) == true) {
-        if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_create"]; !ok {
+        perm := "{{ .Model.Name }}_create"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
             c.JSON(http.StatusForbidden, gin.H{
                 "respCode": http.StatusForbidden,
                 "devMsg":   "User does not have permission to access this endpoint",
@@ -248,7 +265,12 @@ func Create{{ .Model.Name }}(c *gin.Context) {
 func Update{{ .Model.Name }}(c *gin.Context) {
     // Check that user has proper permissions to access this resource
     if (c.MustGet("secured").(bool) == true) {
-        if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_update"]; !ok {
+        perm := "{{ .Model.Name }}_update"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
             c.JSON(http.StatusForbidden, gin.H{
                 "respCode": http.StatusForbidden,
                 "devMsg":   "User does not have permission to access this endpoint",
@@ -257,7 +279,6 @@ func Update{{ .Model.Name }}(c *gin.Context) {
             return
         }
     }
-
 	ver, err := version.New(c)
 	if err != nil {
 		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
@@ -295,7 +316,12 @@ func Update{{ .Model.Name }}(c *gin.Context) {
 func Delete{{ .Model.Name }}(c *gin.Context) {
     // Check that user has proper permissions to access this resource
     if (c.MustGet("secured").(bool) == true) {
-        if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_delete"]; !ok {
+        perm := "{{ .Model.Name }}_delete"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
             c.JSON(http.StatusForbidden, gin.H{
                 "respCode": http.StatusForbidden,
                 "devMsg":   "User does not have permission to access this endpoint",
