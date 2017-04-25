@@ -14,6 +14,16 @@ import (
 )
 
 func Get{{ pluralize .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_read"]; !ok {
+        c.JSON(http.StatusForbidden, gin.H{
+            "respCode": http.StatusForbidden,
+            "devMsg":   "User does not have permission to access this endpoint",
+            "usrMsg":   "User access denied",
+        })
+        return
+    }
+
 	ver, err := version.New(c)
 	if err != nil {
 		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
@@ -140,6 +150,15 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 }
 
 func Get{{ .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_read"]; !ok {
+        c.JSON(http.StatusForbidden, gin.H{
+            "respCode": http.StatusForbidden,
+            "devMsg":   "User does not have permission to access this endpoint",
+            "usrMsg":   "User access denied",
+        })
+        return
+    }
 	ver, err := version.New(c)
 	if err != nil {
 		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
@@ -184,6 +203,15 @@ func Get{{ .Model.Name }}(c *gin.Context) {
 }
 
 func Create{{ .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_create"]; !ok {
+        c.JSON(http.StatusForbidden, gin.H{
+            "respCode": http.StatusForbidden,
+            "devMsg":   "User does not have permission to access this endpoint",
+            "usrMsg":   "User access denied",
+        })
+        return
+    }
 	ver, err := version.New(c)
 	if err != nil {
 		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
@@ -212,6 +240,15 @@ func Create{{ .Model.Name }}(c *gin.Context) {
 }
 
 func Update{{ .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_update"]; !ok {
+        c.JSON(http.StatusForbidden, gin.H{
+            "respCode": http.StatusForbidden,
+            "devMsg":   "User does not have permission to access this endpoint",
+            "usrMsg":   "User access denied",
+        })
+        return
+    }
 	ver, err := version.New(c)
 	if err != nil {
 		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
@@ -247,6 +284,15 @@ func Update{{ .Model.Name }}(c *gin.Context) {
 }
 
 func Delete{{ .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if _, ok := c.MustGet("permissions").(map [string]bool)["{{ .Model.Name }}_delete"]; !ok {
+        c.JSON(http.StatusForbidden, gin.H{
+            "respCode": http.StatusForbidden,
+            "devMsg":   "User does not have permission to access this endpoint",
+            "usrMsg":   "User access denied",
+        })
+        return
+    }
 	ver, err := version.New(c)
 	if err != nil {
 		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
