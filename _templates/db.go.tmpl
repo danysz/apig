@@ -6,6 +6,8 @@ import (
 {{ if (eq .Database "sqlite") }}	"path/filepath"
 {{ end -}}
 	"strings"
+	"fmt"
+	"{{ .VCS }}/{{ .User }}/{{ .Project }}/utils"
 
 	"{{ .ImportDir }}/models"
 
@@ -15,19 +17,40 @@ import (
 	"github.com/serenize/snaker"
 )
 
-func Connect() *gorm.DB {
+func Connect(config *utils.Config) *gorm.DB {
+    tableNamePrefix := os.Getenv("TABLENAME_PREFIX")
+    if tableNamePrefix != "" {
+        gorm.DefaultTableNameHandler = func (db *gorm.DB, defaultTableName string) string  {
+            tableNamePrefix := os.Getenv("TABLENAME_PREFIX")
+            return defaultTableName + tableNamePrefix;
+        }
+    }
 {{ if (eq .Database "sqlite") -}}
 	dir := filepath.Dir("db/database.db")
 	db, err := gorm.Open("sqlite3", dir+"/database.db")
 {{ else if (eq .Database "postgres") -}}
-	dbURL := os.Getenv("DATABASE_URL")
+	//dbURL := os.Getenv("DATABASE_URL")
+	dbURL := fmt.Sprintf("host=%s port=%s user=%s dbname=allspark password=%s",
+                        config.GetDBIPAddress(),
+                        config.GetDBPort(),
+                        config.GetDBAccount(),
+                        config.GetDBPasswd(),
+                        )
+    
 	if dbURL == "" {
 		return nil
 	}
 
 	db, err := gorm.Open("postgres", dbURL)
 {{ else if (eq .Database "mysql") -}}
-	dbURL := os.Getenv("DATABASE_URL")
+	//dbURL := os.Getenv("DATABASE_URL")
+	dbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/allspark?charset=utf8mb4&parseTime=True&loc=Local",
+                        config.GetDBAccount(),
+                        config.GetDBPasswd(),
+                        config.GetDBIPAddress(),
+                        config.GetDBPort(),
+                        )
+    
 	if dbURL == "" {
 		return nil
 	}
@@ -45,7 +68,7 @@ func Connect() *gorm.DB {
 	}
 
 	if os.Getenv("AUTOMIGRATE") == "1" {
-		db.AutoMigrate({{ range .Models }}
+		db.Set("gorm:table_options", "CHARSET=utf8mb4").AutoMigrate({{ range .Models }}
 			&models.{{ .Name }}{},{{ end }}
 		)
 	}
