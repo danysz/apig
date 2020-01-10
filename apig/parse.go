@@ -110,6 +110,7 @@ func parseModel(path string) ([]*Model, error) {
 				switch x2 := spec.(type) {
 				case *ast.TypeSpec:
 					modelName = x2.Name.Name
+					hasModel := false
 
 					switch x3 := x2.Type.(type) {
 					case *ast.StructType:
@@ -120,15 +121,20 @@ func parseModel(path string) ([]*Model, error) {
 								return false
 							}
 
+							if fs.Type == "gorm.Model" {
+								hasModel = true
+							}
+
 							fields = append(fields, fs)
 						}
 					}
 
-					models = append(models, &Model{
-						Name:   modelName,
-						Fields: fields,
-					})
-
+					if hasModel {
+						models = append(models, &Model{
+							Name:   modelName,
+							Fields: fields,
+						})
+					}
 				}
 			}
 		}

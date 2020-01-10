@@ -42,6 +42,11 @@ func TestParseModel(t *testing.T) {
 
 	expectedFields := []*Field{
 		&Field{
+			Name:     "",
+			JSONName: "",
+			Type:     "gorm.Model",
+		},
+		&Field{
 			Name:     "ID",
 			JSONName: "id",
 			Type:     "uint",
