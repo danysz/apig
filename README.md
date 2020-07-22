@@ -34,8 +34,8 @@ Go 1.6 or higher is required.
 After installing required version of Go, you can build and install `apig` by
 
 ```bash
-$ go get -d -u github.com/wantedly/apig
-$ cd $GOPATH/src/github.com/wantedly/apig
+$ go get -d -u github.com/danysz/apig
+$ cd $GOPATH/src/github.com/danysz/apig
 $ make
 $ make install
 ```

@@ -13,5 +13,6 @@ require (
 	github.com/mitchellh/cli v0.0.0-20160323170700-168daae10d6f
 	github.com/serenize/snaker v0.0.0-20160310080004-8824b61eca66
 	github.com/tcnksm/go-gitconfig v0.1.3-0.20150505151006-6411ba19847f
-	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a
+	golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
+	golang.org/x/tools v0.0.0-20200708183856-df98bc6d456c // indirect
 )
