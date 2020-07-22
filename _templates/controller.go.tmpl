@@ -10,6 +10,8 @@ import (
 	"{{ .ImportDir }}/version"
 
 	"github.com/gin-gonic/gin"
+	"strconv"
+	log "github.com/Sirupsen/logrus"
 )
 
 // @summary Get{{ pluralize .Model.Name }}
@@ -26,22 +28,39 @@ import (
 // @failure 404 {string} json
 // @router /{{ pluralize .Model.Name | toLower }} [get]
 func Get{{ pluralize .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if (c.MustGet("secured").(bool) == true) {
+        perm := "{{ .Model.Name }}_read"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
+            c.JSON(http.StatusForbidden, gin.H{
+                "respCode": http.StatusForbidden,
+                "devMsg":   "User does not have permission to access this endpoint",
+                "usrMsg":   "User access denied",
+            })
+            return
+        }
+    }
+
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	db := dbpkg.DBInstance(c)
 	parameter, err := dbpkg.NewParameter(c, models.{{ .Model.Name }}{})
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	db, err = parameter.Paginate(db)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -53,7 +72,7 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 	queryFields := helper.QueryFields(models.{{ .Model.Name }}{}, fields)
 
 	if err := db.Select(queryFields).Find(&{{ pluralize (toLowerCamelCase .Model.Name) }}).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -64,7 +83,7 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 	}
 
 	if err := parameter.SetHeaderLink(c, index); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -80,12 +99,12 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 		for _, {{ toLowerCamelCase .Model.Name }} := range {{ pluralize (toLowerCamelCase .Model.Name) }} {
 			fieldMap, err := helper.FieldToMap({{ toLowerCamelCase .Model.Name }}, fields)
 			if err != nil {
-				c.JSON(400, gin.H{"error": err.Error()})
+				c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 				return
 			}
 
 			if err := enc.Encode(fieldMap); err != nil {
-				c.JSON(400, gin.H{"error": err.Error()})
+				c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 				return
 			}
 		}
@@ -95,18 +114,58 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 		for _, {{ toLowerCamelCase .Model.Name }} := range {{ pluralize (toLowerCamelCase .Model.Name) }} {
 			fieldMap, err := helper.FieldToMap({{ toLowerCamelCase .Model.Name }}, fields)
 			if err != nil {
-				c.JSON(400, gin.H{"error": err.Error()})
+				c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 				return
 			}
 
 			fieldMaps = append(fieldMaps, fieldMap)
 		}
 
-		if v, ok := c.GetQuery("pretty"); ok && v == "true" {
-			c.IndentedJSON(200, fieldMaps)
-		} else {
-			c.JSON(200, fieldMaps)
-		}
+		// collect meta information
+        metaMap := make(map[string]interface{})
+
+        // get total available records without the pagination
+        var count int
+        db := dbpkg.DBInstance(c)
+        parameter, err := dbpkg.NewParameter(c, models.{{ .Model.Name }}{})
+        if err != nil {
+            c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
+            return
+        }
+
+        db = parameter.SetPreloads(db)
+        db = parameter.SortRecords(db)
+        db = parameter.FilterFields(db)
+
+        if err := db.Model(&{{ pluralize (toLowerCamelCase .Model.Name) }}).Count(&count).Error; err != nil {
+            c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
+            return
+        }
+
+        metaMap["total"] = count
+        metaMap["count"] = len(fieldMaps)
+
+        // current page from gin context
+        currentPage,err := strconv.Atoi(c.DefaultQuery("page","1"))
+
+        if err != nil {
+            c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
+            return
+        }
+        metaMap["page"] = currentPage
+        // is this the last page or are there payments remaining? New payments must be added to the last page not the first
+        metaMap["has_more"] = (count > currentPage * len(fieldMaps))
+
+        // wrap it up in the result map
+        resultMap := make(map[string]interface{})
+        resultMap["items"] = fieldMaps
+        resultMap["_meta"] = metaMap
+
+        if _, ok := c.GetQuery("pretty"); ok {
+            c.IndentedJSON(200, resultMap)
+        } else {
+            c.JSON(200, resultMap)
+        }
 	}
 }
 
@@ -119,16 +178,33 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 // @failure 404 {string} json
 // @router /{{ pluralize .Model.Name | toLower }}/{id} [get]
 func Get{{ .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if (c.MustGet("secured").(bool) == true) {
+        perm := "{{ .Model.Name }}_read"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
+            c.JSON(http.StatusForbidden, gin.H{
+                "respCode": http.StatusForbidden,
+                "devMsg":   "User does not have permission to access this endpoint",
+                "usrMsg":   "User access denied",
+            })
+            return
+        }
+    }
+
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	db := dbpkg.DBInstance(c)
 	parameter, err := dbpkg.NewParameter(c, models.{{ .Model.Name }}{})
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -146,7 +222,7 @@ func Get{{ .Model.Name }}(c *gin.Context) {
 
 	fieldMap, err := helper.FieldToMap({{ toLowerCamelCase .Model.Name }}, fields)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -170,9 +246,25 @@ func Get{{ .Model.Name }}(c *gin.Context) {
 // @success 200 {object} models.{{ .Model.Name }} 
 // @router /{{ pluralize .Model.Name | toLower }} [post]
 func Create{{ .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if (c.MustGet("secured").(bool) == true) {
+        perm := "{{ .Model.Name }}_create"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
+            c.JSON(http.StatusForbidden, gin.H{
+                "respCode": http.StatusForbidden,
+                "devMsg":   "User does not have permission to access this endpoint",
+                "usrMsg":   "User access denied",
+            })
+            return
+        }
+    }
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -180,12 +272,12 @@ func Create{{ .Model.Name }}(c *gin.Context) {
 	{{ toLowerCamelCase .Model.Name }} := models.{{ .Model.Name }}{}
 
 	if err := c.Bind(&{{ toLowerCamelCase .Model.Name }}); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	if err := db.Create(&{{ toLowerCamelCase .Model.Name }}).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -206,9 +298,25 @@ func Create{{ .Model.Name }}(c *gin.Context) {
 // @failure 404 {string} json
 // @Router /{{ pluralize .Model.Name | toLower }}/{id} [put]
 func Update{{ .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if (c.MustGet("secured").(bool) == true) {
+        perm := "{{ .Model.Name }}_update"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
+            c.JSON(http.StatusForbidden, gin.H{
+                "respCode": http.StatusForbidden,
+                "devMsg":   "User does not have permission to access this endpoint",
+                "usrMsg":   "User access denied",
+            })
+            return
+        }
+    }
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -223,12 +331,12 @@ func Update{{ .Model.Name }}(c *gin.Context) {
 	}
 
 	if err := c.Bind(&{{ toLowerCamelCase .Model.Name }}); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
 	if err := db.Save(&{{ toLowerCamelCase .Model.Name }}).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -247,9 +355,26 @@ func Update{{ .Model.Name }}(c *gin.Context) {
 // @failure 404 {string} json
 // @Router /{{ pluralize .Model.Name | toLower }}/{id} [delete]
 func Delete{{ .Model.Name }}(c *gin.Context) {
+    // Check that user has proper permissions to access this resource
+    if (c.MustGet("secured").(bool) == true) {
+        perm := "{{ .Model.Name }}_delete"
+        if _, ok := c.MustGet("permissions").(map [string]bool)[perm]; !ok {
+            log.WithFields(log.Fields{
+                        "userid": c.MustGet("userid"),
+                        "permission": perm,
+                    }).Warn("Access denied to to missing permission")
+            c.JSON(http.StatusForbidden, gin.H{
+                "respCode": http.StatusForbidden,
+                "devMsg":   "User does not have permission to access this endpoint",
+                "usrMsg":   "User access denied",
+            })
+            return
+        }
+    }
+
 	ver, err := version.New(c)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 
@@ -258,13 +383,17 @@ func Delete{{ .Model.Name }}(c *gin.Context) {
 	{{ toLowerCamelCase .Model.Name }} := models.{{ .Model.Name }}{}
 
 	if db.First(&{{ toLowerCamelCase .Model.Name }}, id).Error != nil {
+<<<<<<< HEAD
 		content := gin.H{"error": "{{ toLower .Model.Name }} with id#" + id + " not found"}
+=======
+		content := gin.H{"devMsg": "{{ toSnakeCase .Model.Name }} with id#" + id + " not found", "usrMsg": "Record not found", "respCode": 400}
+>>>>>>> a8a54d7bf7f8573e053055ac741f899ede755a87
 		c.JSON(404, content)
 		return
 	}
 
 	if err := db.Delete(&{{ toLowerCamelCase .Model.Name }}).Error; err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.JSON(400, gin.H{"devMsg": err.Error(), "usrMsg": err.Error(), "respCode": 400})
 		return
 	}
 

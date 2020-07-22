@@ -4,9 +4,7 @@ import (
 	"log"
 	"os"
 	"strings"
-
 	"github.com/danysz/api-server/models"
-
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"

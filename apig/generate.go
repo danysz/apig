@@ -18,6 +18,7 @@ import (
 	"github.com/serenize/snaker"
 	"github.com/danysz/apig/msg"
 	"github.com/danysz/apig/util"
+	"runtime"
 )
 
 const (
@@ -598,7 +599,11 @@ func Generate(outDir, modelDir, targetFile string, all bool) int {
 		return 1
 	}
 
+
 	dirs := strings.SplitN(importDir, "/", 3)
+	if runtime.GOOS == "windows" {
+		dirs = strings.SplitN(importDir, "\\", 3)
+	}
 
 	if len(dirs) < 3 {
 		fmt.Fprintln(os.Stderr, "Invalid import path: "+importDir)
