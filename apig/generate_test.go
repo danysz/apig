@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/wantedly/apig/msg"
+	"github.com/danysz/apig/msg"
 )
 
 var userModel = &Model{
@@ -46,11 +46,11 @@ var userModel = &Model{
 
 var detail = &Detail{
 	VCS:       "github.com",
-	User:      "wantedly",
+	User:      "danysz",
 	Project:   "api-server",
 	Model:     userModel,
 	Models:    []*Model{userModel},
-	ImportDir: "github.com/wantedly/api-server",
+	ImportDir: "github.com/danysz/api-server",
 	Namespace: "",
 }
 

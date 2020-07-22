@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wantedly/apig/_example/models"
+	"github.com/danysz/apig/_example/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"

@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
-	dbpkg "github.com/wantedly/apig/_example/db"
-	"github.com/wantedly/apig/_example/helper"
-	"github.com/wantedly/apig/_example/models"
-	"github.com/wantedly/apig/_example/version"
+	dbpkg "github.com/danysz/apig/_example/db"
+	"github.com/danysz/apig/_example/helper"
+	"github.com/danysz/apig/_example/models"
+	"github.com/danysz/apig/_example/version"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/wantedly/apig/_example/controllers"
+	"github.com/danysz/apig/_example/controllers"
 
 	"github.com/gin-gonic/gin"
 )

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/mitchellh/cli"
-	"github.com/wantedly/apig/command"
+	"github.com/danysz/apig/command"
 )
 
 func Commands(meta *command.Meta) map[string]cli.CommandFactory {

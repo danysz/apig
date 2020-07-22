@@ -12,8 +12,8 @@ import (
 	"sync"
 	"text/template"
 
-	"github.com/wantedly/apig/msg"
-	"github.com/wantedly/apig/util"
+	"github.com/danysz/apig/msg"
+	"github.com/danysz/apig/util"
 )
 
 var r = regexp.MustCompile(`_templates/skeleton/.*\.tmpl$`)

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wantedly/apig/apig"
-	"github.com/wantedly/apig/util"
+	"github.com/danysz/apig/apig"
+	"github.com/danysz/apig/util"
 )
 
 const (

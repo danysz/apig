@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wantedly/api-server/models"
+	"github.com/danysz/api-server/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"

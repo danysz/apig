@@ -50,10 +50,10 @@ $ make install
 First, creating by `apig new` command.
 
 ```
-$ apig new -u wantedly apig-sample
+$ apig new -u danysz apig-sample
 ```
 
-generates Golang API server boilerplate under `$GOPATH/src/gihhub.com/wantedly/apig-sample`.
+generates Golang API server boilerplate under `$GOPATH/src/gihhub.com/danysz/apig-sample`.
 apig supports two database engines; SQLite (`sqlite`) and PostgreSQL (`postgres`) and Mysql (`mysql`). You can specify this by `-d, -database` option.
 
 Available command line options of `apig new` command are:

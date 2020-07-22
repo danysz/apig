@@ -16,8 +16,8 @@ import (
 
 	"github.com/gedex/inflector"
 	"github.com/serenize/snaker"
-	"github.com/wantedly/apig/msg"
-	"github.com/wantedly/apig/util"
+	"github.com/danysz/apig/msg"
+	"github.com/danysz/apig/util"
 )
 
 const (

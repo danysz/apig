@@ -4,8 +4,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/wantedly/apig/_example/db"
-	"github.com/wantedly/apig/_example/server"
+	"github.com/danysz/apig/_example/db"
+	"github.com/danysz/apig/_example/server"
 )
 
 // main ...

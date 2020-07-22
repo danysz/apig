@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/tcnksm/go-gitconfig"
-	"github.com/wantedly/apig/apig"
+	"github.com/danysz/apig/apig"
 )
 
 const (

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/mitchellh/cli"
-	"github.com/wantedly/apig/command"
+	"github.com/danysz/apig/command"
 )
 
 func Run(args []string) int {
