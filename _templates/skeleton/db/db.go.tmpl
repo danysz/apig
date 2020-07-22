@@ -6,6 +6,8 @@ import (
 	{{ if (eq .Database "sqlite") }}	"path/filepath"
 	{{ end -}}
 	"strings"
+	"fmt"
+	"{{ .VCS }}/{{ .User }}/{{ .Project }}/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -13,7 +15,7 @@ import (
 	"github.com/serenize/snaker"
 )
 
-func Connect() *gorm.DB {
+func Connect( *utils.Config ) *gorm.DB {
 {{ if (eq .Database "sqlite") -}}
 	dir := filepath.Dir("db/database.db")
 	db, err := gorm.Open("sqlite3", dir+"/database.db")
@@ -25,7 +27,13 @@ func Connect() *gorm.DB {
 
 	db, err := gorm.Open("postgres", dbURL)
 {{ else if (eq .Database "mysql") -}}
-	dbURL := os.Getenv("DATABASE_URL")
+	//dbURL := os.Getenv("DATABASE_URL")
+	dbURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/allspark?charset=utf8mb4&parseTime=True&loc=Local",
+                        config.GetDBAccount(),
+                        config.GetDBPasswd(),
+                        config.GetDBIPAddress(),
+                        config.GetDBPort(),
+                    )
 	if dbURL == "" {
 		return nil
 	}

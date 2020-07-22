@@ -1,0 +1,59 @@
+package utils
+
+import (
+    "log"
+    "github.com/spf13/viper"
+)
+
+type fileConfig struct{
+    ServerPort string `mapstructure:"server_port"`
+    DBIPAddress string `mapstructure:"database_ip"`
+    DBPort string `mapstructure:"database_port"`
+    DBAccount string `mapstructure:"database_account"`
+    DBPasswd string `mapstructure:"database_passwd"`
+    CorsLists []string `mapstructure:"cors_whitelists"`
+}
+
+type Config struct {
+    fileCfg *fileConfig
+}
+
+func ( c *Config )Init(){
+    viper.AddConfigPath(".")
+	viper.SetConfigType("yaml")
+    viper.SetConfigName("rest") // don't add filename extension
+    c.fileCfg = new(fileConfig)
+    err := viper.ReadInConfig()
+    if err != nil {
+        log.Fatalf("Error reading config file, %s", err)
+    }
+    err = viper.Unmarshal(c.fileCfg)
+	if err != nil {
+		log.Fatalf("unable to decode into struct, %v", err)
+	}
+	log.Println(c.fileCfg)
+}
+func ( c Config )GetServerPort()(string){
+    return c.fileCfg.ServerPort
+}
+
+func ( c Config )GetDBIPAddress()(string){
+    return c.fileCfg.DBIPAddress
+}
+
+func ( c Config )GetDBPort()(string){
+    return c.fileCfg.DBPort
+}
+
+func ( c Config )GetDBAccount()(string){
+    return c.fileCfg.DBAccount
+}
+
+func ( c Config )GetDBPasswd()(string){
+    return c.fileCfg.DBPasswd
+}
+
+func ( c Config )GetCorsLists()([]string){
+    return c.fileCfg.CorsLists
+}
+

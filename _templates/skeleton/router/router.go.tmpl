@@ -4,11 +4,15 @@ import (
 	"{{ .VCS }}/{{ .User }}/{{ .Project }}/controllers"
 
 	"github.com/gin-gonic/gin"
+    "github.com/swaggo/gin-swagger"
+    "github.com/swaggo/gin-swagger/swaggerFiles"	
 )
 
 func Initialize(r *gin.Engine) {
 	api := r.Group("{{ .Namespace }}")
 	{
+		api.GET("/doc/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 		//Auto Generate
 	}
 }

@@ -1,20 +1,27 @@
 package main
 
 import (
-	"os"
 	"strconv"
 
 	"{{ .VCS }}/{{ .User }}/{{ .Project }}/db"
 	"{{ .VCS }}/{{ .User }}/{{ .Project }}/server"
+	"{{ .VCS }}/{{ .User }}/{{ .Project }}/utils"
+	_ "{{ .VCS }}/{{ .User }}/{{ .Project }}/docs"
 )
 
-// main ...
+// @title Restful API
+// @version 1.0
+// @description Restful API using Swagger spec
+// @basepath {{ .Namespace }}
 func main() {
-	database := db.Connect()
-	s := server.Setup(database)
+    var config utils.Config
+    config.Init()
+
+	database := db.Connect(&config)
+	s := server.Setup(database, &config)
 	port := "8080"
 
-	if p := os.Getenv("PORT"); p != "" {
+	if p := config.GetServerPort(); p != "" {
 		if _, err := strconv.Atoi(p); err == nil {
 			port = p
 		}

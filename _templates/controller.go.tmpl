@@ -12,6 +12,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @summary Get{{ pluralize .Model.Name }}
+// @produce json
+// @param limit query integer false "Maximum number of items" default(25) mininum(10) maxinum(100)
+// @param fields query string false "Fields to receive" default(*)
+// @param pretty query boolean false "Prettify JSON response" default(false)
+// @param stream query boolean false "Return JSON in streaming format" default(false)
+// @param sort query string false "Retrieves a list in order of priority. + or (none) : ascending. - : descending"
+// @param page query integer false "Page to receive" default(1)
+// @param last_id query integer false "Beginning ID of items"
+// @param order query string false "Order of items: asc or desc. use this with last_id, ex: limit=5&last_id=10&order=desc List 5 items (ID < 10) " default(desc)
+// @success 200 {array} models.{{ .Model.Name }}
+// @failure 404 {string} json
+// @router /{{ pluralize .Model.Name | toLower }} [get]
 func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
@@ -60,7 +73,7 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 		// 1.0.0 <= this version < 2.0.0 !!
 	}
 
-	if _, ok := c.GetQuery("stream"); ok {
+	if v, ok := c.GetQuery("stream"); ok && v == "true" {
 		enc := json.NewEncoder(c.Writer)
 		c.Status(200)
 
@@ -89,7 +102,7 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 			fieldMaps = append(fieldMaps, fieldMap)
 		}
 
-		if _, ok := c.GetQuery("pretty"); ok {
+		if v, ok := c.GetQuery("pretty"); ok && v == "true" {
 			c.IndentedJSON(200, fieldMaps)
 		} else {
 			c.JSON(200, fieldMaps)
@@ -97,6 +110,14 @@ func Get{{ pluralize .Model.Name }}(c *gin.Context) {
 	}
 }
 
+// @summary Get{{ .Model.Name }}
+// @produce json
+// @param id path int true "{{ .Model.Name }} ID"
+// @param fields query string false "Fields to receive" default(*)
+// @param pretty query boolean false "Prettify JSON response" default(false)
+// @success 200 {object} models.{{ .Model.Name }}
+// @failure 404 {string} json
+// @router /{{ pluralize .Model.Name | toLower }}/{id} [get]
 func Get{{ .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
@@ -118,7 +139,7 @@ func Get{{ .Model.Name }}(c *gin.Context) {
 	queryFields := helper.QueryFields(models.{{ .Model.Name }}{}, fields)
 
 	if err := db.Select(queryFields).First(&{{ toLowerCamelCase .Model.Name }}, id).Error; err != nil {
-		content := gin.H{"error": "{{ toSnakeCase .Model.Name }} with id#" + id + " not found"}
+		content := gin.H{"error": "{{ toLower .Model.Name }} with id#" + id + " not found"}
 		c.JSON(404, content)
 		return
 	}
@@ -141,6 +162,13 @@ func Get{{ .Model.Name }}(c *gin.Context) {
 	}
 }
 
+// @summary Create{{ .Model.Name }}
+// @description 測試新增記錄時, 請先編輯 Example Value 欄位, 去除JSON中的 "createdAt" 及 "id"
+// @accept json
+// @produce json
+// @param  {{ toLower .Model.Name }} body models.{{ .Model.Name }} true "{{ .Model.Name }} JSON"
+// @success 200 {object} models.{{ .Model.Name }} 
+// @router /{{ pluralize .Model.Name | toLower }} [post]
 func Create{{ .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
@@ -169,6 +197,14 @@ func Create{{ .Model.Name }}(c *gin.Context) {
 	c.JSON(201, {{ toLowerCamelCase .Model.Name }})
 }
 
+// @Summary Update{{ .Model.Name }}
+// @Accept json
+// @Produce json
+// @Param id path int true "{{ .Model.Name }} ID"
+// @Param  {{ toLower .Model.Name }} body models.{{ .Model.Name }} true "{{ .Model.Name }} JSON"
+// @Success 200 {object} models.{{ .Model.Name }}
+// @failure 404 {string} json
+// @Router /{{ pluralize .Model.Name | toLower }}/{id} [put]
 func Update{{ .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
@@ -181,7 +217,7 @@ func Update{{ .Model.Name }}(c *gin.Context) {
 	{{ toLowerCamelCase .Model.Name }} := models.{{ .Model.Name }}{}
 
 	if db.First(&{{ toLowerCamelCase .Model.Name }}, id).Error != nil {
-		content := gin.H{"error": "{{ toSnakeCase .Model.Name }} with id#" + id + " not found"}
+		content := gin.H{"error": "{{ toLower .Model.Name }} with id#" + id + " not found"}
 		c.JSON(404, content)
 		return
 	}
@@ -204,6 +240,12 @@ func Update{{ .Model.Name }}(c *gin.Context) {
 	c.JSON(200, {{ toLowerCamelCase .Model.Name }})
 }
 
+// @Summary Delete{{ .Model.Name }}
+// @Produce json
+// @Param id path int true "{{ .Model.Name }} ID"
+// @Success 200 {string} json "{ "id #14": "deleted" }"
+// @failure 404 {string} json
+// @Router /{{ pluralize .Model.Name | toLower }}/{id} [delete]
 func Delete{{ .Model.Name }}(c *gin.Context) {
 	ver, err := version.New(c)
 	if err != nil {
@@ -216,7 +258,7 @@ func Delete{{ .Model.Name }}(c *gin.Context) {
 	{{ toLowerCamelCase .Model.Name }} := models.{{ .Model.Name }}{}
 
 	if db.First(&{{ toLowerCamelCase .Model.Name }}, id).Error != nil {
-		content := gin.H{"error": "{{ toSnakeCase .Model.Name }} with id#" + id + " not found"}
+		content := gin.H{"error": "{{ toLower .Model.Name }} with id#" + id + " not found"}
 		c.JSON(404, content)
 		return
 	}

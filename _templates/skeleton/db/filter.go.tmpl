@@ -31,7 +31,12 @@ func filterToMap(c *gin.Context, model interface{}) map[string]string {
 func (self *Parameter) FilterFields(db *gorm.DB) *gorm.DB {
 	for k, v := range self.Filters {
 		if v != "" {
-			db = db.Where(fmt.Sprintf("%s IN (?)", k), strings.Split(v, ","))
+            if strings.Contains(v,",") {
+                db = db.Where(fmt.Sprintf("%s IN (?)", k), strings.Split(v, ","))
+            }else if strings.Index(v,"~") > 0 && strings.LastIndex(v,"~") < len(v)-1 {
+                d := strings.SplitN(v, "~", 3)
+                db = db.Where(fmt.Sprintf("%s BETWEEN ? AND ? ", k), d[0], d[1])
+            }
 		}
 	}
 

@@ -4,6 +4,8 @@ import (
 	"{{ .ImportDir }}/controllers"
 
 	"github.com/gin-gonic/gin"
+    "github.com/swaggo/gin-swagger"
+    "github.com/swaggo/gin-swagger/swaggerFiles"	
 )
 
 func Initialize(r *gin.Engine) {
@@ -11,12 +13,15 @@ func Initialize(r *gin.Engine) {
 
 	api := r.Group("{{ .Namespace }}")
 	{
+		api.GET("/doc/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 {{ range .Models }}
-		api.GET("/{{ pluralize (toSnakeCase .Name) }}", controllers.Get{{ pluralize .Name }})
-		api.GET("/{{ pluralize (toSnakeCase .Name) }}/:id", controllers.Get{{ .Name }})
-		api.POST("/{{ pluralize (toSnakeCase .Name) }}", controllers.Create{{ .Name }})
-		api.PUT("/{{ pluralize (toSnakeCase .Name) }}/:id", controllers.Update{{ .Name }})
-		api.DELETE("/{{ pluralize (toSnakeCase .Name) }}/:id", controllers.Delete{{ .Name }})
+		api.GET("/{{ pluralize (toLower .Name) }}", controllers.Get{{ pluralize .Name }})
+		api.GET("/{{ pluralize (toLower .Name) }}/:id", controllers.Get{{ .Name }})
+		api.POST("/{{ pluralize (toLower .Name) }}", controllers.Create{{ .Name }})
+		api.PUT("/{{ pluralize (toLower .Name) }}/:id", controllers.Update{{ .Name }})
+		api.DELETE("/{{ pluralize (toLower .Name) }}/:id", controllers.Delete{{ .Name }})
 {{ end }}
+        customRouters(api)
 	}
 }
